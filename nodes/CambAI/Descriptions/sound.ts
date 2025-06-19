@@ -53,11 +53,11 @@ export const SoundFields: INodeProperties[] = [
 	},
     {
 		displayName: 'Duration',
-		description: 'The number of seconds the sound has to be played for.',
+		description: 'The number of seconds the sound has to be played for',
 		placeholder: '5',
 		name: 'duration',
 		type: 'number',
-		default: '5',
+		default: 0,
 		displayOptions: {
 			show: {
 				resource: ['sound'],

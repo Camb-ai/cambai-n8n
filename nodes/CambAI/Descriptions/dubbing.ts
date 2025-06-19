@@ -11,7 +11,7 @@ export const DubbingOperations: INodeProperties[] = [
 				name: 'End-to-End Dubbing',
 				value: 'endToEndDubbing',
 				description: 'Dub video/audio content from one language to another',
-				action: 'Perform end-to-end dubbing',
+				action: 'Perform end to end dubbing',
 				routing: {
 					send: {
 						preSend: [ createDubbingTask ],
@@ -112,7 +112,6 @@ export const DubbingFields: INodeProperties[] = [
 				placeholder: '5',
 			},
 		],
-		required: false,
 	},
 	{
 		displayName: 'Additional Options',
