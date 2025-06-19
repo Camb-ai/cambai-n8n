@@ -1,6 +1,6 @@
 import { IDataObject, IExecuteSingleFunctions, IHttpRequestOptions, IN8nHttpFullResponse, INodeExecutionData, INodeProperties } from "n8n-workflow";
 
-export const SpeechOperations: INodeProperties[] = [
+export const SoundOperations: INodeProperties[] = [
 	{
 		displayName: 'Operation',
 		name: 'operation',
@@ -8,66 +8,35 @@ export const SpeechOperations: INodeProperties[] = [
 		noDataExpression: true,
 		options: [
 			{
-				name: 'Text to Speech',
-				value: 'textToSpeech',
-				description: 'Converts text into speech using CambAI TTS',
-				action: 'Convert text to speech',
+				name: 'Generate Sound',
+				value: 'textToSound',
+				description: 'Generate sound from description',
+				action: 'Generate sound from description',
 				routing: {
 					send: {
 						preSend: [ createTTSTask ],
 					},
 					output: {
-						postReceive: [ pollAndRetrieveAudio ],
+						postReceive: [ pollAndRetrieveSound ],
 					}
 				},
 			},
 		],
-		default: 'textToSpeech',
+		default: 'textToSound',
 		displayOptions: {
 			show: {
-				resource: ['speech'],
+				resource: ['sound'],
 			},
 		},
 	}
 ];
 
-export const SpeechFields: INodeProperties[] = [
-	// Text to Speech Fields
+export const SoundFields: INodeProperties[] = [
+    // Text to Sound Fields
 	{
-		displayName: 'Voice',
-		description: 'Select the voice to use for the conversion',
-		name: 'voice',
-		type: 'resourceLocator',
-		default: { mode: 'list', value: 20303 },
-		displayOptions: {
-			show: {
-				resource: ['speech'],
-				operation: ['textToSpeech'],
-			},
-		},
-		modes: [
-			{
-				displayName: 'From list',
-				name: 'list',
-				type: 'list',
-				typeOptions: {
-					searchListMethod: 'listVoices',
-					searchable: true,
-				},
-			},
-			{
-				displayName: 'ID',
-				name: 'id',
-				type: 'string',
-				placeholder: '20303',
-			},
-		],
-		required: true,
-	},
-	{
-		displayName: 'Text',
-		description: 'The text that will get converted into speech',
-		placeholder: 'e.g. Hello from CambAI!',
+		displayName: 'Prompt',
+		description: 'The description of the sound',
+		placeholder: 'e.g. ocean waves crashing',
 		name: 'text',
 		type: 'string',
 		typeOptions: {
@@ -76,44 +45,28 @@ export const SpeechFields: INodeProperties[] = [
 		default: '',
 		displayOptions: {
 			show: {
-				resource: ['speech'],
-				operation: ['textToSpeech'],
+				resource: ['sound'],
+				operation: ['textToSound'],
 			},
 		},
 		required: true,
 	},
-	{
-		displayName: 'Source Language',
-		description: 'Select the source language for the speech synthesis',
-		name: 'language',
-		type: 'resourceLocator',
-		default: { mode: 'list', value: 1 },
+    {
+		displayName: 'Duration',
+		description: 'The number of seconds the sound has to be played for.',
+		placeholder: '5',
+		name: 'duration',
+		type: 'number',
+		default: '5',
 		displayOptions: {
 			show: {
-				resource: ['speech'],
-				operation: ['textToSpeech'],
+				resource: ['sound'],
+				operation: ['textToSound'],
 			},
 		},
-		modes: [
-			{
-				displayName: 'From list',
-				name: 'list',
-				type: 'list',
-				typeOptions: {
-					searchListMethod: 'listSourceLanguages',
-					searchable: true,
-				},
-			},
-			{
-				displayName: 'ID',
-				name: 'id',
-				type: 'string',
-				placeholder: '1',
-			},
-		],
 		required: true,
 	},
-	{
+    {
 		displayName: 'Additional Options',
 		name: 'additionalOptions',
 		type: 'collection',
@@ -121,39 +74,11 @@ export const SpeechFields: INodeProperties[] = [
 		default: {},
 		displayOptions: {
 			show: {
-				resource: ['speech'],
-				operation: ['textToSpeech'],
+				resource: ['sound'],
+				operation: ['textToSound'],
 			},
 		},
 		options: [
-			{
-				displayName: 'Age',
-				name: 'age',
-				description: 'Preferred voice age',
-				type: 'number',
-				default: 30,
-				typeOptions: {
-					minValue: 18,
-					maxValue: 80,
-				},
-			},
-			{
-				displayName: 'Gender',
-				name: 'gender',
-				description: 'Voice gender preference',
-				type: 'options',
-				options: [
-					{
-						name: 'Male',
-						value: 1,
-					},
-					{
-						name: 'Female',
-						value: 2,
-					},
-				],
-				default: 1,
-			},
 			{
 				displayName: 'Output Type',
 				name: 'outputType',
@@ -195,62 +120,31 @@ export const SpeechFields: INodeProperties[] = [
 					maxValue: 600,
 				},
 			},
-			{
-				displayName: 'Project Description',
-				name: 'projectDescription',
-				description: 'Optional project description',
-				type: 'string',
-				default: '',
-			},
-			{
-				displayName: 'Project Name',
-				name: 'projectName',
-				description: 'Optional project name for organization',
-				type: 'string',
-				default: '',
-			},
 		],
 	},
-];
+]
 
-// Step 1: Create TTS task and get task_id
+// Create TTS task and get task_id
 async function createTTSTask(this: IExecuteSingleFunctions, requestOptions: IHttpRequestOptions): Promise<IHttpRequestOptions> {
 	const text = this.getNodeParameter('text') as string;
-	const voiceId = this.getNodeParameter('voice') as IDataObject;
-	const language = this.getNodeParameter('language') as IDataObject;
-	const additionalOptions = this.getNodeParameter('additionalOptions', {}) as IDataObject;
+	const duration = this.getNodeParameter('duration') as number;
 
 	const requestBody: IDataObject = {
-		text,
-		voice_id: voiceId.value,
-		language: language.value,
+		prompt: text,
+		duration,
 	};
-
-	// Add optional parameters
-	if (additionalOptions.gender) {
-		requestBody.gender = additionalOptions.gender;
-	}
-	if (additionalOptions.age) {
-		requestBody.age = additionalOptions.age;
-	}
-	if (additionalOptions.projectName) {
-		requestBody.project_name = additionalOptions.projectName;
-	}
-	if (additionalOptions.projectDescription) {
-		requestBody.project_description = additionalOptions.projectDescription;
-	}
 
 	// Override request options for create TTS task
 	requestOptions.method = 'POST';
-	requestOptions.url = '/tts';
+	requestOptions.url = '/text-to-sound';
 	requestOptions.body = requestBody;
 	requestOptions.json = true;
 	
 	return requestOptions;
 }
 
-// Step 2: Poll status and retrieve final audio
-async function pollAndRetrieveAudio(this: IExecuteSingleFunctions, items: INodeExecutionData[], responseData: IN8nHttpFullResponse): Promise<INodeExecutionData[]> {
+// Poll status and retrieve final audio
+async function pollAndRetrieveSound(this: IExecuteSingleFunctions, items: INodeExecutionData[], responseData: IN8nHttpFullResponse): Promise<INodeExecutionData[]> {
 	const additionalOptions = this.getNodeParameter('additionalOptions', {}) as IDataObject;
 	const outputType = (additionalOptions.outputType as string) || 'raw_bytes';
 	const pollingTimeout = (additionalOptions.pollingTimeout as number) || 120;
@@ -264,10 +158,9 @@ async function pollAndRetrieveAudio(this: IExecuteSingleFunctions, items: INodeE
 		throw new Error('No task_id received from TTS creation request');
 	}
 
-	// Poll for completion
+	let runId: string | null = null;
 	const startTime = Date.now();
-	let runId: number | null = null;
-	
+
 	while (Date.now() - startTime < pollingTimeout * 1000) {
 		// Check task status
 		const statusResponse = await this.helpers.httpRequestWithAuthentication.call(
@@ -275,7 +168,7 @@ async function pollAndRetrieveAudio(this: IExecuteSingleFunctions, items: INodeE
 			'cambaiApi',
 			{
 				method: 'GET',
-				url: `https://client.camb.ai/apis/tts/${taskId}`,
+				url: `https://client.camb.ai/apis/text-to-sound/${taskId}`,
 				json: true,
 			}
 		);
@@ -304,7 +197,7 @@ async function pollAndRetrieveAudio(this: IExecuteSingleFunctions, items: INodeE
 	// Retrieve final audio
 	const audioRequestOptions: any = {
 		method: 'GET',
-		url: `https://client.camb.ai/apis/tts-result/${runId}`,
+		url: `https://client.camb.ai/apis/text-to-sound-result/${runId}`,
 	};
 
 	if (outputType === 'file_url') {
@@ -340,7 +233,7 @@ async function pollAndRetrieveAudio(this: IExecuteSingleFunctions, items: INodeE
 
 		const binaryData = await this.helpers.prepareBinaryData(
 			audioResponse.body,
-			`cambai_tts_${taskId}.flac`,
+			`cambai_sound_${taskId}.flac`,
 			'audio/flac',
 		);
 

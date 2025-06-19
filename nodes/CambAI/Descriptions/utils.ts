@@ -8,12 +8,12 @@ export const listSearch = {
 				'cambaiApi',
 				{
 					method: 'GET',
-					url: '/list-voices',
+					url: 'https://client.camb.ai/apis/list-voices',
 					json: true,
 				}
 			);
 
-			const voices = response.voices || [];
+			const voices = response || [];
 
 			const results = voices.map((voice: any) => ({
 				name: voice.voice_name,
@@ -42,7 +42,7 @@ export const listSearch = {
 				'cambaiApi',
 				{
 					method: 'GET',
-					url: '/source-languages',
+					url: 'https://client.camb.ai/apis/source-languages',
 					json: true,
 				}
 			);
@@ -75,7 +75,7 @@ export const listSearch = {
 				'cambaiApi',
 				{
 					method: 'GET',
-					url: '/target-languages',
+					url: 'https://client.camb.ai/apis/target-languages',
 					json: true,
 				}
 			);

@@ -1,8 +1,11 @@
 import { INodeType, INodeTypeDescription, NodeConnectionType } from 'n8n-workflow';
 import { SpeechFields, SpeechOperations } from './Descriptions/speech';
+import { SoundFields, SoundOperations } from './Descriptions/sound';
+import { VoiceFields, VoiceOperations } from './Descriptions/voice';
+import { DubbingFields, DubbingOperations } from './Descriptions/dubbing';
 import { listSearch } from './Descriptions/utils';
 
-export class CambAI implements INodeType {
+export class CambAi implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'CambAI',
 		name: 'cambAi',
@@ -41,11 +44,29 @@ export class CambAI implements INodeType {
 						name: 'Speech',
 						value: 'speech',
 					},
+					{
+						name: 'Sound',
+						value: 'sound',
+					},
+					{
+						name: 'Voice',
+						value: 'voice',
+					},
+					{
+						name: 'Dubbing',
+						value: 'dubbing',
+					}
 				],
 				default: 'speech',
 			},
 			...SpeechOperations,
 			...SpeechFields,
+			...SoundOperations,
+			...SoundFields,
+			...VoiceOperations,
+			...VoiceFields,
+			...DubbingOperations,
+			...DubbingFields,
 		],
 	};
 
