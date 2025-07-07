@@ -5,11 +5,11 @@
   "license": "MIT",
   "author": {
     "name": "CambAI Team",
-    "email": "team@camb.ai"
+    "email": "support@camb.ai"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/cambai/n8n-nodes-cambai.git"
+    "url": "https://github.com/Camb-ai/cambai-n8n"
   },
   "main": "dist/index.js",
   "scripts": {
